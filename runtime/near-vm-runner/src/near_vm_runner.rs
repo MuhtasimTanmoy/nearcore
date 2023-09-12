@@ -353,7 +353,37 @@ impl NearVM {
         // re-parse invalid code (invalid code, in a sense, is a normal
         // outcome). And `cache`, being a database, can fail with an `io::Error`.
         let _span = tracing::debug_span!(target: "vm", "NearVM::compile_and_load").entered();
+
         let key = get_contract_cache_key(code, VMKind::NearVm, &self.config);
+
+        // Try an in-memory cache first...
+        static MEM_CACHE: once_cell::sync::Lazy<
+            near_cache::SyncLruCache<
+                near_primitives_core::hash::CryptoHash,
+                Result<Vec<u8>, CompilationError>,
+            >,
+        > = once_cell::sync::Lazy::new(|| near_cache::SyncLruCache::new(128));
+
+        let memory_artifact = MEM_CACHE.with_ref(&key, |serialized_module| {
+            let serialized_module = match serialized_module {
+                Ok(exe) => exe,
+                Err(e) => return Ok(Err(e.clone())),
+            };
+            unsafe {
+                let executable = UniversalExecutableRef::deserialize(&serialized_module)
+                    .map_err(|_| CacheError::DeserializationError)?;
+                let artifact = self
+                    .engine
+                    .load_universal_executable_ref(&executable)
+                    .map(Arc::new)
+                    .map_err(|err| VMRunnerError::LoadingError(err.to_string()))?;
+                VMResult::Ok(Ok::<_, CompilationError>(artifact))
+            }
+        });
+        if let Some(result) = memory_artifact {
+            return result;
+        }
+
         let cache_record = cache
             .map(|cache| cache.get(&key))
             .transpose()
@@ -362,9 +392,13 @@ impl NearVM {
 
         let stored_artifact: Option<VMArtifact> = match cache_record {
             None => None,
-            Some(CompiledContract::CompileModuleError(err)) => return Ok(Err(err)),
+            Some(CompiledContract::CompileModuleError(err)) => {
+                MEM_CACHE.put(key, Err(err.clone()));
+                return Ok(Err(err))
+            },
             Some(CompiledContract::Code(serialized_module)) => {
                 let _span = tracing::debug_span!(target: "vm", "NearVM::read_from_cache").entered();
+                MEM_CACHE.put(key, Ok(serialized_module.clone()));
                 unsafe {
                     // (UN-)SAFETY: the `serialized_module` must have been produced by a prior call to
                     // `serialize`.

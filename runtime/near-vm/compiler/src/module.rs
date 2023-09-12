@@ -8,7 +8,7 @@ use near_vm_vm::{MemoryStyle, TableStyle};
 /// This differs from [`ModuleInfo`] because it have extra info only
 /// possible after translation (such as the features used for compiling,
 /// or the `MemoryStyle` and `TableStyle`).
-#[derive(Debug, PartialEq, Eq, rkyv::Serialize, rkyv::Deserialize, rkyv::Archive)]
+#[derive(Debug, PartialEq, Eq, rkyv::Serialize, rkyv::Deserialize, rkyv::Archive, Clone)]
 pub struct CompileModuleInfo {
     /// The features used for compiling the module
     pub features: Features,

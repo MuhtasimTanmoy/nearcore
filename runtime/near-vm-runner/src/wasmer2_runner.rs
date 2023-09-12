@@ -323,7 +323,6 @@ impl Wasmer2VM {
         // A bit of a tricky logic ahead! We need to deal with two levels of
         // caching:
         //   * `cache` stores compiled machine code in the database
-        //   * `MEM_CACHE` below holds in-memory cache of loaded contracts
         //
         // Caches also cache _compilation_ errors, so that we don't have to
         // re-parse invalid code (invalid code, in a sense, is a normal

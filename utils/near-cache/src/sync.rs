@@ -10,9 +10,7 @@ pub struct SyncLruCache<K, V> {
 }
 
 impl<K, V> SyncLruCache<K, V>
-where
-    K: Hash + Eq,
-    V: Clone,
+where K: Hash + Eq,
 {
     /// Creats a new `LRU` cache that holds at most `cap` items.
     pub fn new(cap: usize) -> Self {
@@ -29,6 +27,18 @@ where
         self.inner.lock().unwrap().is_empty()
     }
 
+    /// Returns the value of the key in the cache or None if it is not present in the cache.
+    /// Moves the key to the head of the LRU list if it exists.
+    pub fn with_ref<R>(&self, key: &K, f: impl FnOnce(&V) -> R) -> Option<R> {
+        self.inner.lock().unwrap().get(key).map(f)
+    }
+}
+
+impl<K, V> SyncLruCache<K, V>
+where
+    K: Hash + Eq,
+    V: Clone,
+{
     /// Return the value of they key in the cache otherwise computes the value and inserts it into
     /// the cache. If the key is already in the cache, they gets gets moved to the head of
     /// the LRU list.

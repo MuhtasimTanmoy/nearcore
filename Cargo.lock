@@ -4432,6 +4432,7 @@ dependencies = [
  "hex",
  "loupe",
  "memoffset 0.8.0",
+ "near-cache",
  "near-crypto",
  "near-primitives",
  "near-primitives-core",
