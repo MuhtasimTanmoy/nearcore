@@ -1218,11 +1218,6 @@ impl RuntimeAdapter for NightshadeRuntime {
         Ok(ProtocolConfig { genesis_config, runtime_config })
     }
 
-    fn will_shard_layout_change_next_epoch(&self, parent_hash: &CryptoHash) -> Result<bool, Error> {
-        let epoch_manager = self.epoch_manager.read();
-        Ok(epoch_manager.will_shard_layout_change(parent_hash)?)
-    }
-
     fn load_mem_tries_on_startup(&self, shard_uids: &[ShardUId]) -> Result<(), StorageError> {
         self.tries.load_mem_tries_for_enabled_shards(shard_uids)
     }

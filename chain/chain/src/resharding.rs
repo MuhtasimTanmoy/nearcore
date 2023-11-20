@@ -202,9 +202,10 @@ impl Chain {
         tracing::debug!(target: "resharding", ?shard_id, ?sync_hash, "preprocessing started");
         let block_header = self.get_block_header(sync_hash)?;
         let shard_layout = self.epoch_manager.get_shard_layout(block_header.epoch_id())?;
-        let next_epoch_shard_layout =
-            self.epoch_manager.get_shard_layout(block_header.next_epoch_id())?;
-        assert_ne!(shard_layout, next_epoch_shard_layout);
+        let next_epoch_shard_layout = ShardLayout::get_simple_nightshade_layout_v2();
+        tracing::debug!(target: "resharding", "forcing resharding to V2");
+
+        // assert_ne!(shard_layout, next_epoch_shard_layout);
 
         let shard_uid = ShardUId::from_shard_id_and_layout(shard_id, &shard_layout);
         let prev_hash = block_header.prev_hash();

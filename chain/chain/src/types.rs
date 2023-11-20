@@ -334,10 +334,6 @@ pub trait RuntimeAdapter: Send + Sync {
         current_protocol_version: ProtocolVersion,
     ) -> Result<Vec<SignedTransaction>, Error>;
 
-    /// Returns true if the shard layout will change in the next epoch
-    /// Current epoch is the epoch of the block after `parent_hash`
-    fn will_shard_layout_change_next_epoch(&self, parent_hash: &CryptoHash) -> Result<bool, Error>;
-
     /// Get the block height for which garbage collection should not go over
     fn get_gc_stop_height(&self, block_hash: &CryptoHash) -> BlockHeight;
 

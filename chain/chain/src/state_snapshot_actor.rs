@@ -115,6 +115,7 @@ impl actix::Handler<WithSpanContext<CreateSnapshotRequest>> for StateSnapshotAct
                 }
 
                 if self.tries.state_snapshot_config().compaction_enabled {
+                    tracing::info!(target: "state_snapshot", "State snapshot ready, requesting compaction.");
                     context.address().do_send(CompactSnapshotRequest {}.with_span_context());
                 } else {
                     tracing::info!(target: "state_snapshot", "State snapshot ready, not running compaction.");

@@ -1581,12 +1581,13 @@ impl EpochManager {
         Ok(shard_layout)
     }
 
-    pub fn will_shard_layout_change(&self, parent_hash: &CryptoHash) -> Result<bool, EpochError> {
-        let epoch_id = self.get_epoch_id_from_prev_block(parent_hash)?;
-        let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
-        let shard_layout = self.get_shard_layout(&epoch_id)?;
-        let next_shard_layout = self.get_shard_layout(&next_epoch_id)?;
-        Ok(shard_layout != next_shard_layout)
+    pub fn will_shard_layout_change(&self, _parent_hash: &CryptoHash) -> Result<bool, EpochError> {
+        Ok(true)
+        // let epoch_id = self.get_epoch_id_from_prev_block(parent_hash)?;
+        // let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
+        // let shard_layout = self.get_shard_layout(&epoch_id)?;
+        // let next_shard_layout = self.get_shard_layout(&next_epoch_id)?;
+        // Ok(shard_layout != next_shard_layout)
     }
 
     pub fn get_epoch_info(&self, epoch_id: &EpochId) -> Result<Arc<EpochInfo>, EpochError> {

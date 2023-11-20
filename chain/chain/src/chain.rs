@@ -2742,6 +2742,7 @@ impl Chain {
             shard_tracker.care_about_shard(me.as_ref(), parent_hash, shard_id, true);
 
         tracing::debug!(target: "chain", does_care_about_shard, will_care_about_shard, will_shard_layout_change, "should catch up shard");
+        tracing::debug!(target: "resharding", does_care_about_shard, will_care_about_shard, will_shard_layout_change, "should catch up shard");
 
         will_care_about_shard && (will_shard_layout_change || !does_care_about_shard)
     }
@@ -3853,8 +3854,9 @@ impl Chain {
         block: &Block,
         shard_id: ShardId,
     ) -> Result<HashMap<ShardUId, StateRoot>, Error> {
-        let next_shard_layout =
-            self.epoch_manager.get_shard_layout(block.header().next_epoch_id())?;
+        // let next_shard_layout =
+        //     self.epoch_manager.get_shard_layout(block.header().next_epoch_id())?;
+        let next_shard_layout = ShardLayout::get_simple_nightshade_layout_v2();
         let new_shards = next_shard_layout.get_split_shard_uids(shard_id).unwrap_or_else(|| {
             panic!(
                 "shard layout must contain maps of all shards to its split shards {} {:?}",
@@ -3937,7 +3939,9 @@ impl Chain {
             self.shard_tracker.care_about_shard(me.as_ref(), prev_hash, shard_id, true);
         let cares_about_shard_next_epoch =
             self.shard_tracker.will_care_about_shard(me.as_ref(), prev_hash, shard_id, true);
-        let will_shard_layout_change = self.epoch_manager.will_shard_layout_change(prev_hash)?;
+        // TODO(wac) can set to false
+        // let will_shard_layout_change = self.epoch_manager.will_shard_layout_change(prev_hash)?;
+        let will_shard_layout_change = false;
         let should_apply_transactions = get_should_apply_transactions(
             mode,
             cares_about_shard_this_epoch,
@@ -4109,6 +4113,8 @@ impl Chain {
         // We need to delete the existing snapshot at the epoch boundary if we are not making a new snapshot
         // This is useful for the next epoch after resharding where make_snapshot is false but it's an epoch boundary
         let delete_snapshot = !make_snapshot && is_epoch_boundary;
+
+        tracing::info!(target: "resharding", make_snapshot, delete_snapshot, "should_make_or_delete_snapshot");
 
         Ok((make_snapshot, delete_snapshot))
     }

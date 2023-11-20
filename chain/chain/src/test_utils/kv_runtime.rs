@@ -939,13 +939,16 @@ impl EpochManagerAdapter for MockEpochManager {
         Ok(false)
     }
 
-    fn will_shard_layout_change(&self, parent_hash: &CryptoHash) -> Result<bool, EpochError> {
-        // Copied from EpochManager (KeyValueRuntime is deprecated anyway).
-        let epoch_id = self.get_epoch_id_from_prev_block(parent_hash)?;
-        let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
-        let shard_layout = self.get_shard_layout(&epoch_id)?;
-        let next_shard_layout = self.get_shard_layout(&next_epoch_id)?;
-        Ok(shard_layout != next_shard_layout)
+    fn will_shard_layout_change(&self, _parent_hash: &CryptoHash) -> Result<bool, EpochError> {
+        // irrelevant, just in case
+        tracing::error!(target: "resharding", "kv runtime will_shard_layout_change called");
+        Ok(true)
+        // // Copied from EpochManager (KeyValueRuntime is deprecated anyway).
+        // let epoch_id = self.get_epoch_id_from_prev_block(parent_hash)?;
+        // let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
+        // let shard_layout = self.get_shard_layout(&epoch_id)?;
+        // let next_shard_layout = self.get_shard_layout(&next_epoch_id)?;
+        // Ok(shard_layout != next_shard_layout)
     }
 
     #[cfg(feature = "new_epoch_sync")]
@@ -1363,13 +1366,6 @@ impl RuntimeAdapter for KeyValueRuntime {
 
     fn get_protocol_config(&self, _epoch_id: &EpochId) -> Result<ProtocolConfig, Error> {
         unreachable!("get_protocol_config should not be called in KeyValueRuntime");
-    }
-
-    fn will_shard_layout_change_next_epoch(
-        &self,
-        _parent_hash: &CryptoHash,
-    ) -> Result<bool, Error> {
-        Ok(false)
     }
 
     fn apply_update_to_split_states(
