@@ -1055,29 +1055,30 @@ impl EpochManager {
     // that `shard_id` will split to
     pub fn cares_about_shard_next_epoch_from_prev_block(
         &self,
-        parent_hash: &CryptoHash,
-        account_id: &AccountId,
-        shard_id: ShardId,
+        _parent_hash: &CryptoHash,
+        _account_id: &AccountId,
+        _shard_id: ShardId,
     ) -> Result<bool, EpochError> {
-        let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
-        if self.will_shard_layout_change(parent_hash)? {
-            let shard_layout = self.get_shard_layout(&next_epoch_id)?;
-            let split_shards = shard_layout
-                .get_split_shard_ids(shard_id)
-                .expect("all shard layouts expect the first one must have a split map");
-            for next_shard_id in split_shards {
-                if self.cares_about_shard_in_epoch(
-                    next_epoch_id.clone(),
-                    account_id,
-                    next_shard_id,
-                )? {
-                    return Ok(true);
-                }
-            }
-            Ok(false)
-        } else {
-            self.cares_about_shard_in_epoch(next_epoch_id, account_id, shard_id)
-        }
+        // let next_epoch_id = self.get_next_epoch_id_from_prev_block(parent_hash)?;
+        Ok(true)
+        // if self.will_shard_layout_change(parent_hash)? {
+        //     let shard_layout = self.get_shard_layout(&next_epoch_id)?;
+        //     let split_shards = shard_layout
+        //         .get_split_shard_ids(shard_id)
+        //         .expect("all shard layouts expect the first one must have a split map");
+        //     for next_shard_id in split_shards {
+        //         if self.cares_about_shard_in_epoch(
+        //             next_epoch_id.clone(),
+        //             account_id,
+        //             next_shard_id,
+        //         )? {
+        //             return Ok(true);
+        //         }
+        //     }
+        //     Ok(false)
+        // } else {
+        //     self.cares_about_shard_in_epoch(next_epoch_id, account_id, shard_id)
+        // }
     }
 
     /// Returns true if next block after given block hash is in the new epoch.
