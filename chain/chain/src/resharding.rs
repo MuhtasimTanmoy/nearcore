@@ -8,7 +8,7 @@ use crate::metrics::{
     RESHARDING_BATCH_COUNT, RESHARDING_BATCH_PREPARE_TIME, RESHARDING_BATCH_SIZE,
     RESHARDING_STATUS,
 };
-use crate::Chain;
+use crate::{Chain, ChainStoreAccess};
 use itertools::Itertools;
 use near_chain_configs::StateSplitConfig;
 use near_chain_primitives::error::Error;
@@ -434,6 +434,21 @@ impl Chain {
         RESHARDING_STATUS
             .with_label_values(&[&shard_uid.to_string()])
             .set(ReshardingStatus::Finished.into());
+
+        debug!(target: "resharding", "Cleaning up flat storage, hardcoded resharding only!");
+        let runtime = self.runtime_adapter.clone();
+        let chain_store_update = self.mut_store().store_update();
+        let mut store_update = chain_store_update.store().store_update();
+        for shard_uid in child_shard_uids {
+            // tracing::info!(target: "garbage_collection", ?block_hash, ?shard_uid, "GC resharding");
+            runtime.get_tries().delete_trie_for_shard(shard_uid, &mut store_update);
+            runtime
+                .get_flat_storage_manager()
+                .remove_flat_storage_for_shard(shard_uid, &mut store_update)?;
+        }
+        chain_store_update.commit()?;
+
+        debug!(target: "resharding", "Postprocessing finished!");
 
         Ok(())
     }
